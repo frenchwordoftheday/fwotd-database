@@ -12,15 +12,27 @@ USER root
 
 ##########################################################################
 ###                                                                    ###
-###   Set (read: hardcode) the MySQL environment variables             ###
+###   Define and copy the secret(s) for user authentication            ###
 ###                                                                    ###
 ##########################################################################
-ENV MYSQL_ROOT_PASSWORD   F3HqAECS85S7
-ENV MYSQL_DATABASE        FWOTD
-ENV MYSQL_USER            fwotd
-ENV MYSQL_PASSWORD        Qg5Q6yKhwMME
+ENV   sourceSecretsDirectory    secrets
+ENV   targetSecretsDirectory    /run/secrets/mysql
+ENV   secretFileRootPassword    secret-mysql-root-user-password
+ENV   secretFileUserPassword    secret-mysql-fwotd-user-password
 
-ENV mysqlDataLoadDirectory /docker-entrypoint-initdb.d
+COPY  $sourceSecretsDirectory/* $targetSecretsDirectory/
+RUN   ls -lha                   $targetSecretsDirectory/
+
+
+##########################################################################
+###                                                                    ###
+###   Set the MySQL environment variables                              ###
+###                                                                    ###
+##########################################################################
+ENV   MYSQL_ROOT_PASSWORD_FILE  $targetSecretsDirectory/$secretFileRootPassword
+ENV   MYSQL_DATABASE            FWOTD
+ENV   MYSQL_USER                fwotd
+ENV   MYSQL_PASSWORD_FILE       $targetSecretsDirectory/$secretFileUserPassword
 
 
 ##########################################################################
@@ -28,8 +40,11 @@ ENV mysqlDataLoadDirectory /docker-entrypoint-initdb.d
 ###   Copy the database creation SQL to be executed at startup         ###
 ###                                                                    ###
 ##########################################################################
-COPY *.sql  $mysqlDataLoadDirectory
-RUN ls -lha $mysqlDataLoadDirectory
+ENV   sourceSQLDumpDirectory    sql
+ENV   targetSQLDumpDirectory    /docker-entrypoint-initdb.d
+
+COPY  $sourceSQLDumpDirectory/* $targetSQLDumpDirectory/
+RUN   ls -lha                   $mysqlDataLoadDirectory/
 
 
 ##########################################################################
