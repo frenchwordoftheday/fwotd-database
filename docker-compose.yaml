@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+
+   fwotd-database:
+     image: frenchwordoftheday/fwotd-database
+     container_name: fwotd-database
+     restart: always
+     ports:
+       - 13306:3306
+
+   fwotd-phpmyadmin:
+     depends_on:
+       - fwotd-database
+     image: phpmyadmin/phpmyadmin
+     container_name: fwotd-phpmyadmin
+     restart: always
+     ports:
+       - 13080:80
+     environment:
+       PMA_HOST: fwotd-database
